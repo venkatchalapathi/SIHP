@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.List;
 
 class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<String, String>>>> {
+
     TaskLoadedCallback taskCallback;
     String directionMode = "driving";
     ArrayList<ComPojo> list;
@@ -27,7 +28,6 @@ class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<String, 
         this.directionMode = directionMode;
     }
 
-    // Parsing the data in non-ui thread
     @Override
     protected List<List<HashMap<String, String>>> doInBackground(String... jsonData) {
 
@@ -116,10 +116,10 @@ class PointsParser extends AsyncTask<String, Integer, List<List<HashMap<String, 
         }
         Log.i("databaseList:", "" + list.size());
         Log.i("routeList:", "" + points.size());
-        Log.i("mainList:", "" + mainlist.size());
-        // Drawing polyline in the Google Map for the i-th route
+        //Log.i("mainList:", "" + mainlist.size());
+
         if (lineOptions != null) {
-            //mMap.addPolyline(lineOptions);
+
             taskCallback.onTaskDone(lineOptions);
 
         } else {

@@ -9,8 +9,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_gravity="center">
+        android:orientation="vertical">
+
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -19,12 +19,11 @@
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="150dp"
                 android:gravity="center"
                 android:padding="32dp"
-                android:text="User Registration"
+                android:text="Admin Registration"
                 android:textColor="#BEB3B3"
-                android:textStyle="bold"
                 android:textSize="32sp" />
         </LinearLayout>
 
@@ -44,16 +43,25 @@
                 android:padding="8dp">
 
                 <EditText
-                    android:id="@+id/reg_name"
+                    android:id="@+id/adreg_name"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    android:hint="User Name"
+                    android:hint="Admin Name"
                     android:inputType="textEmailAddress"
                     android:textColor="@android:color/holo_green_light" />
 
                 <EditText
-                    android:id="@+id/reg_email"
+                    android:id="@+id/adreg_empid"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Employee ID"
+                    android:inputType="textEmailAddress"
+                    android:textColor="@android:color/holo_green_light" />
+
+                <EditText
+                    android:id="@+id/adreg_email"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
@@ -62,7 +70,7 @@
                     android:textColor="@android:color/holo_green_light" />
 
                 <EditText
-                    android:id="@+id/reg_phone"
+                    android:id="@+id/adreg_phone"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
@@ -71,7 +79,7 @@
                     android:textColor="@android:color/holo_green_light" />
 
                 <EditText
-                    android:id="@+id/reg_password"
+                    android:id="@+id/adreg_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
@@ -80,13 +88,33 @@
                     android:inputType="textPassword" />
 
                 <EditText
-                    android:id="@+id/reenter_password"
+                    android:id="@+id/adreenter_password"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
                     android:hint="Password"
                     android:inputType="textPassword"
                     android:textColor="@android:color/holo_blue_bright" />
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+                    <EditText
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/lat"
+                        android:layout_weight="1"
+                        android:hint="Enter Lattitude "
+                        android:layout_margin="10dp"/>
+                    <EditText
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/longi"
+                        android:layout_margin="10dp"
+                        android:layout_weight="1"
+                        android:hint="Enter Longitude"/>
+
+                </LinearLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -99,7 +127,7 @@
                         android:layout_height="50dp"
                         android:layout_margin="45dp"
                         android:layout_weight="1"
-                        android:onClick="registerButton"
+                        android:onClick="adregisterButton"
                         android:tag="custom_signup_button"
                         android:text="Register" />
 

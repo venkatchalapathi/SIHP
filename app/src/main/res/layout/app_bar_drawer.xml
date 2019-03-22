@@ -36,8 +36,8 @@
         android:id="@+id/fab"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="@dimen/fab_margin"
+        android:layout_gravity="end|bottom"
+        android:layout_marginBottom="65dp"
         app:srcCompat="@drawable/mylocation" />
 
     <android.support.design.widget.FloatingActionButton
@@ -45,7 +45,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="65dp"
         android:layout_marginRight="90dp"
         android:src="@drawable/navigation"
         />
@@ -58,5 +58,7 @@
         android:src="@drawable/add"
         android:visibility="invisible"
         />
+
+
 
 </android.support.design.widget.CoordinatorLayout>

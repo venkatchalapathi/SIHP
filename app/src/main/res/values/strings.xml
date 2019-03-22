@@ -19,4 +19,7 @@
     <string name="sign_in_facebook">Sign in with Facebook</string>
     <string name="sign_in_google">Sign in with Google</string>
     <string name="logout_text">Sign out</string>
+    <string name="title_activity_admin_drawer">AdminDrawerActivity</string>
+    <string name="title_activity_admin_maps">Map</string>
+    <string name="title_activity_drawer2">Drawer2Activity</string>
 </resources>

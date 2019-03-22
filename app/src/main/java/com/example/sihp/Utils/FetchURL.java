@@ -30,7 +30,6 @@ public class FetchURL extends AsyncTask<String, Void, String> {
         String data = "";
         directionMode = strings[1];
         try {
-            // Fetching the data from web service
             data = downloadUrl(strings[0]);
             Log.d("mylog","before:"+strings[0]);
             Log.d("mylog", "Background task data " + data.toString());

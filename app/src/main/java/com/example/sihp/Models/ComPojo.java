@@ -1,10 +1,14 @@
 package com.example.sihp.Models;
 
-public class ComPojo {
+import android.os.Parcel;
+import android.os.Parcelable;
+import android.text.ParcelableSpan;
 
-    String problem;
+public class ComPojo implements Parcelable {
+
+    public String problem;
     public double lattitude;
-    double longitude;
+    public double longitude;
 
     public ComPojo() {
 
@@ -15,6 +19,24 @@ public class ComPojo {
         this.lattitude = lattitude;
         this.longitude = longitude;
     }
+
+    protected ComPojo(Parcel in) {
+        problem = in.readString();
+        lattitude = in.readDouble();
+        longitude = in.readDouble();
+    }
+
+    public static final Creator<ComPojo> CREATOR = new Creator<ComPojo>() {
+        @Override
+        public ComPojo createFromParcel(Parcel in) {
+            return new ComPojo(in);
+        }
+
+        @Override
+        public ComPojo[] newArray(int size) {
+            return new ComPojo[size];
+        }
+    };
 
     public String getProblem() {
         return problem;
@@ -38,5 +60,17 @@ public class ComPojo {
 
     public void setLongitude(double longitude) {
         this.longitude = longitude;
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(problem);
+        dest.writeDouble(lattitude);
+        dest.writeDouble(longitude);
     }
 }

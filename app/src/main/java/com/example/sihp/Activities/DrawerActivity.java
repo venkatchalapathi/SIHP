@@ -1,10 +1,12 @@
 package com.example.sihp.Activities;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -63,7 +65,6 @@ public class DrawerActivity extends AppCompatActivity
 
     private FirebaseAuth mAuth;
     private GoogleMap mMap;
-
     LatLng markedLocation;
     ArrayList markerPoints = new ArrayList();
     private Polyline currentPolyline;
@@ -73,17 +74,31 @@ public class DrawerActivity extends AppCompatActivity
     private SharedPreferences preferences;
     private SharedPreferences.Editor editor;
 
-    FloatingActionButton fabnav,fabadd;
+    FloatingActionButton fabnav, fabadd;
     FirebaseUser currentUser;
-    EditText searchBar, searchBar1;
+    EditText searchBar;
     GPSTracker gps;
+
     double lat;
     double longi;
+    private static final String[] LOCATION_PERMS = {
+            Manifest.permission.ACCESS_FINE_LOCATION
+    };
+    private static final int INITIAL_REQUEST = 1337;
+    private static final int LOCATION_REQUEST = INITIAL_REQUEST + 3;
 
     private static String ORDER_KEY = "sort_order_key";
     private static String RANDOM = "random";
     private static String ADD = "add";
     private static String SINGLE = "single";
+
+    private boolean canAccessLocation() {
+        return (hasPermission(Manifest.permission.ACCESS_FINE_LOCATION));
+    }
+
+    private boolean hasPermission(String perm) {
+        return (PackageManager.PERMISSION_GRANTED == checkSelfPermission(perm));
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,113 +106,103 @@ public class DrawerActivity extends AppCompatActivity
         setContentView(R.layout.activity_drawer);
 
         mAuth = FirebaseAuth.getInstance();
-        currentUser = mAuth.getCurrentUser() ;
-        if (mAuth.getCurrentUser()!=null){
-            TextView mail_id = findViewById(R.id.profile_mail_ID);
-           // mail_id.setText(""+mAuth.getCurrentUser().getEmail());
+        currentUser = mAuth.getCurrentUser();
 
-            Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-            setSupportActionBar(toolbar);
+        TextView mail_id = findViewById(R.id.profile_mail_ID);
 
-            preferences = getSharedPreferences("pref_file", Context.MODE_PRIVATE);
-            editor = preferences.edit();
-            editor.apply();
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
 
-            fabnav = findViewById(R.id.fabnav);
-            fabadd = findViewById(R.id.fabadd);
-            searchBar = findViewById(R.id.searchEditText);
+        preferences = getSharedPreferences("pref_file", Context.MODE_PRIVATE);
+        editor = preferences.edit();
+        editor.apply();
 
-            locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        fabnav = findViewById(R.id.fabnav);
+        fabadd = findViewById(R.id.fabadd);
+        searchBar = findViewById(R.id.searchEditText);
 
-            // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-            SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                    .findFragmentById(R.id.map);
-            mapFragment.getMapAsync(this);
-            FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-            gps = new GPSTracker(this);
-            if (gps.canGetLocation) {
-                lat = gps.getLatitude();
-                longi = gps.getLongitude();
-            }
-            fab.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
 
-                    gps = new GPSTracker(DrawerActivity.this);
-                    // check if GPS enabled
-                    if (gps.canGetLocation()) {
-                        double latitude = gps.getLatitude();
-                        double longitude = gps.getLongitude();
-
-                        updatePointer(latitude, longitude);
-                        // \n is for new line
-                        Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-                    } else {
-                        // can't get location
-                        // GPS or Network is not enabled
-                        // Ask user to enable GPS/network in settings
-                        gps.showSettingsAlert();
-                    }
-                    Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                            .setAction("Action", null).show();
-                }
-            });
-            fabnav.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-
-                    searchBar.setVisibility(View.VISIBLE);
-                    loadMapFromTo();
-
-                }
-            });
-            fabadd.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Toast.makeText(DrawerActivity.this, "Add clicked", Toast.LENGTH_SHORT).show();
-                    addProblem();
-                }
-            });
-            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-            drawer.addDrawerListener(toggle);
-            toggle.syncState();
-
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            navigationView.setNavigationItemSelectedListener(this);
-        }else {
-            startActivity(new Intent(this, LoginActivity.class));
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.map);
+        mapFragment.getMapAsync(this);
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        gps = new GPSTracker(this);
+        if (gps.canGetLocation) {
+            lat = gps.getLatitude();
+            longi = gps.getLongitude();
         }
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                gps = new GPSTracker(DrawerActivity.this);
+                if (gps.canGetLocation()) {
+                    double latitude = gps.getLatitude();
+                    double longitude = gps.getLongitude();
+
+                    updatePointer(latitude, longitude);
+                    Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
+                } else {
+                    gps.showSettingsAlert();
+                }
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
+        fabnav.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(DrawerActivity.this, "Mark To Location", Toast.LENGTH_SHORT).show();
+                loadMapFromTo();
+
+            }
+        });
+        fabadd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(DrawerActivity.this, "Add clicked", Toast.LENGTH_SHORT).show();
+                addProblem();
+            }
+        });
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.addDrawerListener(toggle);
+        toggle.syncState();
+
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (mAuth.getCurrentUser()!= null){
+        if (mAuth.getCurrentUser() != null) {
             TextView mail_id = findViewById(R.id.profile_mail_ID);
-           // mail_id.setText(""+mAuth.getCurrentUser());
         }
     }
 
     private void addProblem() {
         markerPoints.clear();
+
         AlertDialog.Builder dialog = new AlertDialog.Builder(this);
-        View view = LayoutInflater.from(this).inflate(R.layout.add_layout,null);
+        View view = LayoutInflater.from(this).inflate(R.layout.add_layout, null);
 
         final Spinner sp = view.findViewById(R.id.spinner);
         final TextView textView = view.findViewById(R.id.showlatlongi);
         dialog.setView(view);
         dialog.setTitle("Add Problem on this location");
-        textView.setText(""+markedLocation);
+        textView.setText("" + markedLocation);
         dialog.setPositiveButton("Add", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 Toast.makeText(DrawerActivity.this, "Added", Toast.LENGTH_SHORT).show();
                 String problem = sp.getSelectedItem().toString();
                 String location = textView.getText().toString();
-                setVauesToDB(problem,markedLocation.latitude,markedLocation.longitude);
+                setVauesToDB(problem, markedLocation.latitude, markedLocation.longitude);
             }
         });
         dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -206,33 +211,31 @@ public class DrawerActivity extends AppCompatActivity
 
             }
         });
-
         dialog.show();
     }
 
     private void setVauesToDB(String problem, double latitude, double longitude) {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("SIHP");
-
-        Map<String,Object> map = new HashMap<>();
-        map.put("problem",problem);
-        map.put("lattitude",latitude);
-        map.put("longitude",longitude);
+        Map<String, Object> map = new HashMap<>();
+        map.put("problem", problem);
+        map.put("lattitude", latitude);
+        map.put("longitude", longitude);
 
         myRef.child("Problems").push().setValue(map);
+        Toast.makeText(this, "Problem Added", Toast.LENGTH_SHORT).show();
     }
 
     private void loadMapFromTo() {
         markerPoints.clear();
         mMap.clear();
-        editor.putString(ORDER_KEY,SINGLE);
+        editor.putString(ORDER_KEY, SINGLE);
         editor.commit();
     }
 
     private void updatePointer(double latitude, double longitude) {
         mMap.setMyLocationEnabled(true);
         LatLng sydney = new LatLng(lat, longi);
-
         //mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         CameraUpdate cameraUpdateFactory = CameraUpdateFactory.newLatLngZoom(sydney, 7);
         mMap.animateCamera(cameraUpdateFactory);
@@ -265,12 +268,13 @@ public class DrawerActivity extends AppCompatActivity
 
         //noinspection SimplifiableIfStatement
         if (id == R.id.search) {
-            searchBar.setVisibility(View.VISIBLE);
+            //searchBar.setVisibility(View.VISIBLE);
             loadMapFromTo();
             return true;
         }
-        if (id == R.id.action_logout){
+        if (id == R.id.action_logout) {
             mAuth.signOut();
+            startActivity(new Intent(this, LoginActivity.class));
         }
 
         return super.onOptionsItemSelected(item);
@@ -282,21 +286,27 @@ public class DrawerActivity extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
         if (id == R.id.nav_camera) {
             // Handle the camera action
             markerPoints.clear();
             mMap.clear();
-            editor.putString(ORDER_KEY,RANDOM);
+            editor.putString(ORDER_KEY, RANDOM);
             editor.commit();
 
         } else if (id == R.id.nav_gallery) {
             markerPoints.clear();
-            editor.putString(ORDER_KEY,ADD);
+            editor.putString(ORDER_KEY, ADD);
             editor.commit();
             fabadd.setVisibility(View.VISIBLE);
 
         } else if (id == R.id.nav_share) {
+            Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
+            sharingIntent.setType("text/plain");
+            String shareBody = "Here is the share content body";
+            sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Subject Here");
+            sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
+            startActivity(Intent.createChooser(sharingIntent, "Share via"));
+
             Toast.makeText(DrawerActivity.this, "Share app", Toast.LENGTH_SHORT).show();
 
         } else if (id == R.id.nav_send) {
@@ -310,8 +320,10 @@ public class DrawerActivity extends AppCompatActivity
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
-        mMap = googleMap;
+        this.mMap = googleMap;
+
         mMap.setMyLocationEnabled(true);
+
         GPSTracker gpsTracker = new GPSTracker(this);
         LatLng sydney = new LatLng(lat, longi);
 
@@ -321,22 +333,21 @@ public class DrawerActivity extends AppCompatActivity
             @Override
             public void onMapClick(LatLng latLng) {
 
-                if (preferences.getString(ORDER_KEY,SINGLE).equals(SINGLE)){
+                if (preferences.getString(ORDER_KEY, SINGLE).equals(SINGLE)) {
                     Toast.makeText(DrawerActivity.this, "Single", Toast.LENGTH_SHORT).show();
                     getSingle(latLng);
-                }
-                else if (preferences.getString(ORDER_KEY, RANDOM).equals(RANDOM)){
+                } else if (preferences.getString(ORDER_KEY, RANDOM).equals(RANDOM)) {
                     Toast.makeText(DrawerActivity.this, "Randowm", Toast.LENGTH_SHORT).show();
                     getRandom(latLng);
-                }else if (preferences.getString(ORDER_KEY,ADD).equals(ADD)){
+                } else if (preferences.getString(ORDER_KEY, ADD).equals(ADD)) {
                     Toast.makeText(DrawerActivity.this, "Add begins", Toast.LENGTH_SHORT).show();
                     addPlaces(latLng);
                 }
 
             }
         });
-
     }
+
 
     private void addPlaces(LatLng latLng) {
 
@@ -351,7 +362,7 @@ public class DrawerActivity extends AppCompatActivity
 
         options.position(latLng);
 
-         if (markerPoints.size() == 1) {
+        if (markerPoints.size() == 1) {
             options.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
         }
         mMap.addMarker(options);
@@ -371,14 +382,13 @@ public class DrawerActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                for (DataSnapshot ds: dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
 
                     ComPojo post = ds.getValue(ComPojo.class);
                     list.add(post);
-
                 }
 
-                sendData(list,latLng);
+                sendData(list, latLng);
             }
 
             @Override
@@ -386,12 +396,12 @@ public class DrawerActivity extends AppCompatActivity
                 System.out.println("The read failed: " + databaseError.getCode());
             }
         });
-        Log.i("fSize1:",""+list.size());
+        Log.i("fSize1:", "" + list.size());
 
     }
 
     private void sendData(ArrayList<ComPojo> list, LatLng latLng) {
-        Log.i("fSize2:",""+list.size());
+        Log.i("fSize2:", "" + list.size());
         LatLng currentLocation = new LatLng(lat, longi);
         if (markerPoints.size() > 1) {
             markerPoints.clear();
@@ -427,16 +437,16 @@ public class DrawerActivity extends AppCompatActivity
             double lat2 = dest.latitude;
             double lng2 = dest.longitude;
 
-            double total_distance = getDistance(lat1,lng1,lat2,lng2);
+            double total_distance = getDistance(lat1, lng1, lat2, lng2);
 
-            Toast.makeText(DrawerActivity.this, "Total Distance is :"+total_distance+" miles", Toast.LENGTH_SHORT).show();
+            Toast.makeText(DrawerActivity.this, "Total Distance is :" + total_distance + " miles", Toast.LENGTH_SHORT).show();
 
             // Getting URL to the Google Directions API
             String url = getDirectionsUrl(origin, dest);
 
             Log.d("url-->", url);
 
-            FetchURL fetchURL = new FetchURL(DrawerActivity.this,list);
+            FetchURL fetchURL = new FetchURL(DrawerActivity.this, list);
             fetchURL.execute(url, "driving");
 
         }
@@ -445,11 +455,12 @@ public class DrawerActivity extends AppCompatActivity
     private double getDistance(double lat1, double lng1, double lat2, double lng2) {
 
         double earthRadius = 3958.75; // in miles, change to 6371 for kilometer output
-        double dLat = Math.toRadians(lat2-lat1);
-        double dLng = Math.toRadians(lng2-lng1);
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLng = Math.toRadians(lng2 - lng1);
         double sindLat = Math.sin(dLat / 2);
         double sindLng = Math.sin(dLng / 2);
-        double a = Math.pow(sindLat, 2) + Math.pow(sindLng, 2) * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)); double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double a = Math.pow(sindLat, 2) + Math.pow(sindLng, 2) * Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2));
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double dist = earthRadius * c;
         return dist;
     }
@@ -462,14 +473,14 @@ public class DrawerActivity extends AppCompatActivity
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                for (DataSnapshot ds: dataSnapshot.getChildren()){
+                for (DataSnapshot ds : dataSnapshot.getChildren()) {
 
                     ComPojo post = ds.getValue(ComPojo.class);
                     list.add(post);
 
                 }
 
-                sendTwoData(list,latLng);
+                sendTwoData(list, latLng);
             }
 
             @Override
@@ -514,7 +525,7 @@ public class DrawerActivity extends AppCompatActivity
 
             Log.d("url-->", url);
 
-            FetchURL fetchURL = new FetchURL(DrawerActivity.this,list);
+            FetchURL fetchURL = new FetchURL(DrawerActivity.this, list);
             fetchURL.execute(url, "driving");
 
         }
@@ -557,28 +568,47 @@ public class DrawerActivity extends AppCompatActivity
 
     @Override
     public void onCompareDone(ArrayList<ComPojo> list) {
-        if (list.size()> 0){
+        if (list.size() > 0) {
             //ArrayList<ComPojo> markersArray = new ArrayList<ComPojo>();
 
-            for(int i = 0 ; i < list.size() ; i++) {
+            for (int i = 0; i < list.size(); i++) {
 
-                //String latLng = list.get(i).getLocation();
+                Log.i("act:", "" + list.get(i).lattitude);
 
-                Log.i("act:",""+list.get(i).lattitude);
-                drawCircle(new LatLng(list.get(i).getLattitude(), list.get(i).getLongitude()));
+                String problem = list.get(i).getProblem();
+                drawCircle(new LatLng(list.get(i).getLattitude(), list.get(i).getLongitude()),problem);
             }
 
-        }else {
+        } else {
             showAlert();
         }
     }
 
-    private void drawCircle(LatLng latLng) {
+    private void drawCircle(LatLng latLng, String problem) {
+        int circle_size =10;
+        int circle_color = getResources().getColor(R.color.colorPrimaryDark);
         CircleOptions circleOptions = new CircleOptions();
         circleOptions.center(latLng);
-        circleOptions.radius(450);
+        switch (problem){
+            case "Lonely Area":
+                circle_size = 20;
+                circle_color = getResources().getColor(R.color.colorPrimary);
+                break;
+            case "Potholes":
+                circle_size = 5;
+                circle_color = getResources().getColor(R.color.colorAccent);
+                break;
+            case "Spead Breakers":
+                circle_size = 7;
+                circle_color = getResources().getColor(R.color.markercolor);
+                break;
+            case "Danger":
+                circle_size = 25;
+                break;
+        }
+        circleOptions.radius(circle_size);
         circleOptions.strokeColor(Color.RED);
-        circleOptions.fillColor(0xffffff00);
+        circleOptions.fillColor(circle_color);
         circleOptions.strokeWidth(2);
         mMap.addCircle(circleOptions);
     }
